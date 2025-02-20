@@ -1,4 +1,4 @@
-package com.java_lesson.demo.dataobject;
+package com.java_lesson.demo.dto;
 
 import lombok.Data;
 import org.springframework.http.HttpStatusCode;

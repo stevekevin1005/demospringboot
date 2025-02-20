@@ -1,58 +1,46 @@
 package com.java_lesson.demo.service;
 
-import com.java_lesson.demo.dataobject.User;
+import com.java_lesson.demo.dao.UserMapper;
+import com.java_lesson.demo.entity.User;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Service
 public class UserService {
 
-    private static final Map<String, User> map = new HashMap<>();
+    private final UserMapper userMapper;
 
-    public User createUser(String name, int age) {
+    public UserService(UserMapper userMapper) {
+        this.userMapper = userMapper;
+    }
+
+    public List<User> listUser() {
+        return userMapper.findAll();
+    }
+
+
+    public User createUser(String name, int age, String sex, int weight, int height) {
         User user = new User();
         user.setName(name);
         user.setAge(age);
-        map.put(name, user);
+        user.setSex(sex);
+        user.setWeight(weight);
+        user.setHeight(height);
+        userMapper.insert(user);
         return user;
     }
 
-    public User updateUser(String name, Integer age, String sex, Integer height, Integer weight)
-            throws Exception {
-        if (!map.containsKey(name)) {
-            throw new Exception("user not exist");
-        }
-        User originalUser = map.get(name);
-        if (null != age) {
-            originalUser.setAge(age);
-        }
-        if (null != sex) {
-            originalUser.setSex(sex);
-        }
-        if (null != height) {
-            originalUser.setHeight(height);
-        }
-        if (null != weight) {
-            originalUser.setWeight(weight);
-        }
-        map.put(name, originalUser);
-        return originalUser;
+    public User getById(int id) {
+        return userMapper.getById(id);
     }
 
-    public User getUser(String name) {
-        if (map.containsKey(name)) {
-            return map.get(name);
-        }
-        return null;
+    public void deleteUser(int id) {
+        userMapper.deleteUser(id);
     }
 
-    public String deleteUser(String name) {
-        if (!map.containsKey(name)) {
-            return "user is not exist";
-        }
-        map.remove(name);
-        return "delete user success";
+    public void updateUser(User user) {
+        userMapper.updateUser(user);
     }
+
 }

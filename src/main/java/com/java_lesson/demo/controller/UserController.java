@@ -1,12 +1,17 @@
 package com.java_lesson.demo.controller;
 
 
-import com.java_lesson.demo.dataobject.ApiResponse;
-import com.java_lesson.demo.dataobject.User;
+import com.java_lesson.demo.dto.ApiResponse;
+import com.java_lesson.demo.dto.CreateUserRequest;
+import com.java_lesson.demo.dto.UpdateUserRequest;
+import com.java_lesson.demo.entity.User;
 import com.java_lesson.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Objects;
 
 @RestController
 public class UserController {
@@ -14,15 +19,28 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-
-    @GetMapping("/v1/user/{name}")
-    public ApiResponse<User> getUser(@PathVariable("name") String name) {
-        ApiResponse<User> response = new ApiResponse<>();
+    @GetMapping("/v1/user")
+    public ApiResponse<List<User>> listUser() {
+        ApiResponse<List<User>> response = new ApiResponse<>();
         try {
-            User user = userService.getUser(name);
-            response.setData(user);
+            List<User> users = userService.listUser();
+            response.setData(users);
             response.setStatus(HttpStatusCode.valueOf(200));
             return response;
+        } catch (Exception e) {
+            response.setStatus(HttpStatusCode.valueOf(500));
+            response.setMessage(e.getMessage());
+        }
+        return response;
+    }
+
+    @GetMapping("/v1/user/{id}")
+    public ApiResponse<User> getUser(@PathVariable("id") Integer id) {
+        ApiResponse<User> response = new ApiResponse<>();
+        try {
+            User user = userService.getById(id);
+            response.setData(user);
+            response.setStatus(HttpStatusCode.valueOf(200));
         } catch (Exception e) {
             response.setStatus(HttpStatusCode.valueOf(500));
             response.setMessage(e.getMessage());
@@ -31,10 +49,11 @@ public class UserController {
     }
 
     @PostMapping("/v1/user")
-    public ApiResponse<User> createUser(@RequestBody User request) {
+    public ApiResponse<User> createUser(@RequestBody CreateUserRequest request) {
         ApiResponse<User> response = new ApiResponse<>();
         try {
-            User user = userService.createUser(request.getName(), request.getAge());
+            User user = userService.createUser(request.getName(), request.getAge(), request.getSex(),
+                    request.getHeight(), request.getWeight());
             response.setData(user);
             response.setStatus(HttpStatusCode.valueOf(200));
             return response;
@@ -45,29 +64,49 @@ public class UserController {
         return response;
     }
 
-    @DeleteMapping("/v1/user/{name}")
-    public ApiResponse<String> deleteUser(@PathVariable("name") String name) {
+    @DeleteMapping("/v1/user/{id}")
+    public ApiResponse<String> deleteUser(@PathVariable("id") Integer id) {
         ApiResponse<String> response = new ApiResponse<>();
         try {
-            String result = userService.deleteUser(name);
-            response.setData(result);
-            response.setStatus(HttpStatusCode.valueOf(200));
+            User user = userService.getById(id);
+            if (Objects.nonNull(user)) {
+                userService.deleteUser(id);
+            }
+            response.setData("OK");
             return response;
         } catch (Exception e) {
             response.setStatus(HttpStatusCode.valueOf(500));
+            response.setData("Delete user failed");
             response.setMessage(e.getMessage());
         }
         return response;
     }
 
-    @PutMapping("/v1/user/{name}")
-    public ApiResponse<User> updateUser(@PathVariable("name") String name, @RequestBody User request) {
+    @PutMapping("/v1/user/{id}")
+    public ApiResponse<User> updateUser(@PathVariable("id") Integer id,
+                                        @RequestBody UpdateUserRequest request) {
         ApiResponse<User> response = new ApiResponse<>();
         try {
-            User user = userService.updateUser(name, request.getAge(),
-                    request.getSex(), request.getHeight(), request.getWeight());
+            User user = userService.getById(id);
+            if (Objects.nonNull(user)) {
+                if (Objects.nonNull(request.getName())) {
+                    user.setName(request.getName());
+                }
+                if (Objects.nonNull(request.getSex())) {
+                    user.setSex(request.getSex());
+                }
+                if (Objects.nonNull(request.getWeight())) {
+                    user.setWeight(request.getWeight());
+                }
+                if (Objects.nonNull(request.getAge())) {
+                    user.setAge(request.getAge());
+                }
+                if (Objects.nonNull(request.getHeight())) {
+                    user.setHeight(request.getHeight());
+                }
+                userService.updateUser(user);
+            }
             response.setData(user);
-            response.setStatus(HttpStatusCode.valueOf(200));
             return response;
         } catch (Exception e) {
             response.setStatus(HttpStatusCode.valueOf(500));
